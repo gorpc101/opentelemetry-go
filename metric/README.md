@@ -1,0 +1,14 @@
+MeterProvider负责创建Meter
+Meter负责创建各种监控项，如counter、histogram等
+Measurement代表监控项一次记录的数值、观测值
+Instrument用来表示一个织入实现，如syncInstrument、asyncInstrument，后者是通过observer的方式来实现的
+counter\histogram等监控项监控到数据后根据自己的Aggregator来决定如何对监控到的数据做统计，如counter用sum、gauge用lastvalue、histgram更新bucket中统计项
+
+但是对于时序、百分位数等等，是没有实现的，这方面还是需要自己实现？
+
+Summary用来表示时序数据，其中的百分位数好像不能自行配置？
+Histogram中没有与计算的百分位数，需要事后自行统计，百分位数的支持现在还没有支持，help wanted状态。
+
+----
+
+接下来看下opentelemetry相关的测试用例，看下具体是如何使用的

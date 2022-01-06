@@ -1,0 +1,529 @@
+@startuml
+title opentelemetry metric design
+namespace metric {
+    class BatchObserver << (S,Aquamarine) >> {
+        - meter Meter
+        - runner sdkapi.AsyncBatchRunner
+
+        + NewInt64GaugeObserver(name string, opts ...InstrumentOption) (Int64GaugeObserver, error)
+        + NewFloat64GaugeObserver(name string, opts ...InstrumentOption) (Float64GaugeObserver, error)
+        + NewInt64CounterObserver(name string, opts ...InstrumentOption) (Int64CounterObserver, error)
+        + NewFloat64CounterObserver(name string, opts ...InstrumentOption) (Float64CounterObserver, error)
+        + NewInt64UpDownCounterObserver(name string, opts ...InstrumentOption) (Int64UpDownCounterObserver, error)
+        + NewFloat64UpDownCounterObserver(name string, opts ...InstrumentOption) (Float64UpDownCounterObserver, error)
+
+    }
+    class BatchObserverFunc << (S,Aquamarine) >> {
+        + AnyRunner() 
+        + Run(ctx context.Context, function <font color=blue>func</font>([]attribute.KeyValue, ...Observation) ) 
+
+    }
+    class BatchObserverMust << (S,Aquamarine) >> {
+        - batch BatchObserver
+
+        + NewInt64GaugeObserver(name string, oos ...InstrumentOption) Int64GaugeObserver
+        + NewFloat64GaugeObserver(name string, oos ...InstrumentOption) Float64GaugeObserver
+        + NewInt64CounterObserver(name string, oos ...InstrumentOption) Int64CounterObserver
+        + NewFloat64CounterObserver(name string, oos ...InstrumentOption) Float64CounterObserver
+        + NewInt64UpDownCounterObserver(name string, oos ...InstrumentOption) Int64UpDownCounterObserver
+        + NewFloat64UpDownCounterObserver(name string, oos ...InstrumentOption) Float64UpDownCounterObserver
+
+    }
+    class BatchObserverResult << (S,Aquamarine) >> {
+        - function <font color=blue>func</font>([]attribute.KeyValue, ...Observation) 
+
+        + Observe(labels []attribute.KeyValue, obs ...Observation) 
+
+    }
+    class Float64Counter << (S,Aquamarine) >> {
+        + Measurement(value float64) Measurement
+        + Add(ctx context.Context, value float64, labels ...attribute.KeyValue) 
+
+    }
+    class Float64CounterObserver << (S,Aquamarine) >> {
+        + Observation(v float64) Observation
+
+    }
+    class Float64GaugeObserver << (S,Aquamarine) >> {
+        + Observation(v float64) Observation
+
+    }
+    class Float64Histogram << (S,Aquamarine) >> {
+        + Measurement(value float64) Measurement
+        + Record(ctx context.Context, value float64, labels ...attribute.KeyValue) 
+
+    }
+    class Float64ObserverFunc << (S,Aquamarine) >> {
+        + AnyRunner() 
+        + Run(ctx context.Context, impl sdkapi.AsyncImpl, function <font color=blue>func</font>([]attribute.KeyValue, ...Observation) ) 
+
+    }
+    class Float64ObserverResult << (S,Aquamarine) >> {
+        - instrument sdkapi.AsyncImpl
+        - function <font color=blue>func</font>([]attribute.KeyValue, ...Observation) 
+
+        + Observe(value float64, labels ...attribute.KeyValue) 
+
+    }
+    class Float64UpDownCounter << (S,Aquamarine) >> {
+        + Measurement(value float64) Measurement
+        + Add(ctx context.Context, value float64, labels ...attribute.KeyValue) 
+
+    }
+    class Float64UpDownCounterObserver << (S,Aquamarine) >> {
+        + Observation(v float64) Observation
+
+    }
+    class InstrumentConfig << (S,Aquamarine) >> {
+        - description string
+        - unit unit.Unit
+
+        + Description() string
+        + Unit() unit.Unit
+
+    }
+    interface InstrumentOption  {
+        - applyInstrument( *InstrumentConfig) 
+
+    }
+    class Int64Counter << (S,Aquamarine) >> {
+        + Measurement(value int64) Measurement
+        + Add(ctx context.Context, value int64, labels ...attribute.KeyValue) 
+
+    }
+    class Int64CounterObserver << (S,Aquamarine) >> {
+        + Observation(v int64) Observation
+
+    }
+    class Int64GaugeObserver << (S,Aquamarine) >> {
+        + Observation(v int64) Observation
+
+    }
+    class Int64Histogram << (S,Aquamarine) >> {
+        + Measurement(value int64) Measurement
+        + Record(ctx context.Context, value int64, labels ...attribute.KeyValue) 
+
+    }
+    class Int64ObserverFunc << (S,Aquamarine) >> {
+        + AnyRunner() 
+        + Run(ctx context.Context, impl sdkapi.AsyncImpl, function <font color=blue>func</font>([]attribute.KeyValue, ...Observation) ) 
+
+    }
+    class Int64ObserverResult << (S,Aquamarine) >> {
+        - instrument sdkapi.AsyncImpl
+        - function <font color=blue>func</font>([]attribute.KeyValue, ...Observation) 
+
+        + Observe(value int64, labels ...attribute.KeyValue) 
+
+    }
+    class Int64UpDownCounter << (S,Aquamarine) >> {
+        + Measurement(value int64) Measurement
+        + Add(ctx context.Context, value int64, labels ...attribute.KeyValue) 
+
+    }
+    class Int64UpDownCounterObserver << (S,Aquamarine) >> {
+        + Observation(v int64) Observation
+
+    }
+    class Meter << (S,Aquamarine) >> {
+        - impl sdkapi.MeterImpl
+
+        - newAsync(name string, mkind sdkapi.InstrumentKind, nkind number.Kind, opts []InstrumentOption, runner sdkapi.AsyncRunner) (sdkapi.AsyncImpl, error)
+        - newSync(name string, metricKind sdkapi.InstrumentKind, numberKind number.Kind, opts []InstrumentOption) (sdkapi.SyncImpl, error)
+
+        + RecordBatch(ctx context.Context, ls []attribute.KeyValue, ms ...Measurement) 
+        + NewBatchObserver(callback BatchObserverFunc) BatchObserver
+        + NewInt64Counter(name string, options ...InstrumentOption) (Int64Counter, error)
+        + NewFloat64Counter(name string, options ...InstrumentOption) (Float64Counter, error)
+        + NewInt64UpDownCounter(name string, options ...InstrumentOption) (Int64UpDownCounter, error)
+        + NewFloat64UpDownCounter(name string, options ...InstrumentOption) (Float64UpDownCounter, error)
+        + NewInt64Histogram(name string, opts ...InstrumentOption) (Int64Histogram, error)
+        + NewFloat64Histogram(name string, opts ...InstrumentOption) (Float64Histogram, error)
+        + NewInt64GaugeObserver(name string, callback Int64ObserverFunc, opts ...InstrumentOption) (Int64GaugeObserver, error)
+        + NewFloat64GaugeObserver(name string, callback Float64ObserverFunc, opts ...InstrumentOption) (Float64GaugeObserver, error)
+        + NewInt64CounterObserver(name string, callback Int64ObserverFunc, opts ...InstrumentOption) (Int64CounterObserver, error)
+        + NewFloat64CounterObserver(name string, callback Float64ObserverFunc, opts ...InstrumentOption) (Float64CounterObserver, error)
+        + NewInt64UpDownCounterObserver(name string, callback Int64ObserverFunc, opts ...InstrumentOption) (Int64UpDownCounterObserver, error)
+        + NewFloat64UpDownCounterObserver(name string, callback Float64ObserverFunc, opts ...InstrumentOption) (Float64UpDownCounterObserver, error)
+        + MeterImpl() sdkapi.MeterImpl
+
+    }
+    class MeterConfig << (S,Aquamarine) >> {
+        - instrumentationVersion string
+        - schemaURL string
+
+        + InstrumentationVersion() string
+        + SchemaURL() string
+
+    }
+    class MeterMust << (S,Aquamarine) >> {
+        - meter Meter
+
+        + NewInt64Counter(name string, cos ...InstrumentOption) Int64Counter
+        + NewFloat64Counter(name string, cos ...InstrumentOption) Float64Counter
+        + NewInt64UpDownCounter(name string, cos ...InstrumentOption) Int64UpDownCounter
+        + NewFloat64UpDownCounter(name string, cos ...InstrumentOption) Float64UpDownCounter
+        + NewInt64Histogram(name string, mos ...InstrumentOption) Int64Histogram
+        + NewFloat64Histogram(name string, mos ...InstrumentOption) Float64Histogram
+        + NewInt64GaugeObserver(name string, callback Int64ObserverFunc, oos ...InstrumentOption) Int64GaugeObserver
+        + NewFloat64GaugeObserver(name string, callback Float64ObserverFunc, oos ...InstrumentOption) Float64GaugeObserver
+        + NewInt64CounterObserver(name string, callback Int64ObserverFunc, oos ...InstrumentOption) Int64CounterObserver
+        + NewFloat64CounterObserver(name string, callback Float64ObserverFunc, oos ...InstrumentOption) Float64CounterObserver
+        + NewInt64UpDownCounterObserver(name string, callback Int64ObserverFunc, oos ...InstrumentOption) Int64UpDownCounterObserver
+        + NewFloat64UpDownCounterObserver(name string, callback Float64ObserverFunc, oos ...InstrumentOption) Float64UpDownCounterObserver
+        + NewBatchObserver(callback BatchObserverFunc) BatchObserverMust
+
+    }
+    interface MeterOption  {
+        - applyMeter( *MeterConfig) 
+
+    }
+    interface MeterProvider  {
+        + Meter(instrumentationName string, opts ...MeterOption) Meter
+
+    }
+    class asyncInstrument << (S,Aquamarine) >> {
+        - instrument sdkapi.AsyncImpl
+
+        + AsyncImpl() sdkapi.AsyncImpl
+
+    }
+    class instrumentOptionFunc << (S,Aquamarine) >> {
+        - applyInstrument(cfg *InstrumentConfig) 
+
+    }
+    class meterOptionFunc << (S,Aquamarine) >> {
+        - applyMeter(cfg *MeterConfig) 
+
+    }
+    class metric.BatchObserverFunc << (T, #FF7700) >>  {
+    }
+    class metric.Float64ObserverFunc << (T, #FF7700) >>  {
+    }
+    class metric.Int64ObserverFunc << (T, #FF7700) >>  {
+    }
+    class metric.Measurement << (T, #FF7700) >>  {
+    }
+    class metric.Observation << (T, #FF7700) >>  {
+    }
+    class metric.instrumentOptionFunc << (T, #FF7700) >>  {
+    }
+    class metric.meterOptionFunc << (T, #FF7700) >>  {
+    }
+    class noopMeterProvider << (S,Aquamarine) >> {
+        + Meter(instrumentationName string, opts ...MeterOption) Meter
+
+    }
+    class syncInstrument << (S,Aquamarine) >> {
+        - instrument sdkapi.SyncImpl
+
+        - float64Measurement(value float64) Measurement
+        - int64Measurement(value int64) Measurement
+        - directRecord(ctx context.Context, number number.Number, labels []attribute.KeyValue) 
+
+        + SyncImpl() sdkapi.SyncImpl
+
+    }
+    class "<font color=blue>func</font>(context.Context, BatchObserverResult) " as fontcolorbluefuncfontcontextContextBatchObserverResult {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(context.Context, Float64ObserverResult) " as fontcolorbluefuncfontcontextContextFloat64ObserverResult {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "<font color=blue>func</font>(context.Context, Int64ObserverResult) " as fontcolorbluefuncfontcontextContextInt64ObserverResult {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "sdkapi.Measurement" as sdkapiMeasurement {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+    class "sdkapi.Observation" as sdkapiObservation {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+"metric.syncInstrument" *-- "extends""metric.Float64Counter"
+"metric.asyncInstrument" *-- "extends""metric.Float64CounterObserver"
+"metric.asyncInstrument" *-- "extends""metric.Float64GaugeObserver"
+"metric.syncInstrument" *-- "extends""metric.Float64Histogram"
+"metric.syncInstrument" *-- "extends""metric.Float64UpDownCounter"
+"metric.asyncInstrument" *-- "extends""metric.Float64UpDownCounterObserver"
+"metric.syncInstrument" *-- "extends""metric.Int64Counter"
+"metric.asyncInstrument" *-- "extends""metric.Int64CounterObserver"
+"metric.asyncInstrument" *-- "extends""metric.Int64GaugeObserver"
+"metric.syncInstrument" *-- "extends""metric.Int64Histogram"
+"metric.syncInstrument" *-- "extends""metric.Int64UpDownCounter"
+"metric.asyncInstrument" *-- "extends""metric.Int64UpDownCounterObserver"
+
+"sdkapi.AsyncBatchRunner" <|-- "implements""metric.BatchObserverFunc"
+"sdkapi.AsyncRunner" <|-- "implements""metric.BatchObserverFunc"
+"sdkapi.AsyncRunner" <|-- "implements""metric.Float64ObserverFunc"
+"sdkapi.AsyncSingleRunner" <|-- "implements""metric.Float64ObserverFunc"
+"sdkapi.AsyncRunner" <|-- "implements""metric.Int64ObserverFunc"
+"sdkapi.AsyncSingleRunner" <|-- "implements""metric.Int64ObserverFunc"
+"metric.InstrumentOption" <|-- "implements""metric.instrumentOptionFunc"
+"metric.MeterOption" <|-- "implements""metric.meterOptionFunc"
+"metric.MeterProvider" <|-- "implements""metric.noopMeterProvider"
+
+"metric.BatchObserver""uses" o-- "metric.Meter"
+"metric.BatchObserver""uses" o-- "sdkapi.AsyncBatchRunner"
+"metric.BatchObserverMust""uses" o-- "metric.BatchObserver"
+"metric.Float64ObserverResult""uses" o-- "sdkapi.AsyncImpl"
+"metric.InstrumentConfig""uses" o-- "unit.Unit"
+"metric.Int64ObserverResult""uses" o-- "sdkapi.AsyncImpl"
+"metric.Meter""uses" o-- "sdkapi.MeterImpl"
+"metric.MeterMust""uses" o-- "metric.Meter"
+"metric.asyncInstrument""uses" o-- "sdkapi.AsyncImpl"
+"metric.syncInstrument""uses" o-- "sdkapi.SyncImpl"
+
+namespace metrictest {
+    class Async << (S,Aquamarine) >> {
+        + Implementation() <font color=blue>interface</font>{}
+
+    }
+    class Handle << (S,Aquamarine) >> {
+        + Instrument *Sync
+        + Labels []attribute.KeyValue
+
+        + RecordOne(ctx context.Context, number number.Number) 
+        + Unbind() 
+
+    }
+    class Instrument << (S,Aquamarine) >> {
+        + Descriptor() sdkapi.Descriptor
+
+    }
+    class Measured << (S,Aquamarine) >> {
+        + Name string
+        + Labels <font color=blue>map</font>[attribute.Key]attribute.Value
+        + Number number.Number
+        + Library Library
+
+    }
+    class MeterImpl << (S,Aquamarine) >> {
+        - doRecordSingle(ctx context.Context, labels []attribute.KeyValue, instrument sdkapi.InstrumentImpl, number number.Number) 
+        - collect(ctx context.Context, labels []attribute.KeyValue, measurements []Measurement) 
+
+        + NewSyncInstrument(descriptor sdkapi.Descriptor) (sdkapi.SyncImpl, error)
+        + NewAsyncInstrument(descriptor sdkapi.Descriptor, runner sdkapi.AsyncRunner) (sdkapi.AsyncImpl, error)
+        + RecordBatch(ctx context.Context, labels []attribute.KeyValue, measurements ...sdkapi.Measurement) 
+        + CollectAsync(labels []attribute.KeyValue, obs ...sdkapi.Observation) 
+
+    }
+    class MeterProvider << (S,Aquamarine) >> {
+        - registerAsyncInstrument(a *Async, m *MeterImpl, runner sdkapi.AsyncRunner) 
+        - addMeasurement(b Batch) 
+        - copyImpls() []*MeterImpl
+
+        + Meter(name string, opts ...metric.MeterOption) metric.Meter
+        + RunAsyncInstruments() 
+
+    }
+    class Sync << (S,Aquamarine) >> {
+        + Implementation() <font color=blue>interface</font>{}
+        + RecordOne(ctx context.Context, number number.Number, labels []attribute.KeyValue) 
+
+    }
+}
+
+"sdkapi.MeterImpl" <|-- "implements""metrictest.MeterImpl"
+"metric.MeterProvider" <|-- "implements""metrictest.MeterProvider"
+"sdkapi.SyncImpl" <|-- "implements""metrictest.Sync"
+
+"metrictest.Handle""uses" o-- "attribute.KeyValue"
+"metrictest.Handle""uses" o-- "metrictest.Sync"
+"metrictest.Measured""uses" o-- "attribute.Key"
+"metrictest.Measured""uses" o-- "attribute.Value"
+"metrictest.Measured""uses" o-- "metrictest.Library"
+"metrictest.Measured""uses" o-- "number.Number"
+
+namespace number {
+    class Kind << (S,Aquamarine) >> {
+        + String() string
+        + Zero() Number
+        + Minimum() Number
+        + Maximum() Number
+
+    }
+    class Number << (S,Aquamarine) >> {
+        - compareWithZero(kind Kind) int
+
+        + AsNumber() Number
+        + AsRaw() uint64
+        + AsInt64() int64
+        + AsFloat64() float64
+        + AsNumberAtomic() Number
+        + AsRawAtomic() uint64
+        + AsInt64Atomic() int64
+        + AsFloat64Atomic() float64
+        + AsRawPtr() *uint64
+        + AsInt64Ptr() *int64
+        + AsFloat64Ptr() *float64
+        + CoerceToInt64(kind Kind) int64
+        + CoerceToFloat64(kind Kind) float64
+        + SetNumber(nn Number) 
+        + SetRaw(r uint64) 
+        + SetInt64(i int64) 
+        + SetFloat64(f float64) 
+        + SetNumberAtomic(nn Number) 
+        + SetRawAtomic(r uint64) 
+        + SetInt64Atomic(i int64) 
+        + SetFloat64Atomic(f float64) 
+        + SwapNumber(nn Number) Number
+        + SwapRaw(r uint64) uint64
+        + SwapInt64(i int64) int64
+        + SwapFloat64(f float64) float64
+        + SwapNumberAtomic(nn Number) Number
+        + SwapRawAtomic(r uint64) uint64
+        + SwapInt64Atomic(i int64) int64
+        + SwapFloat64Atomic(f float64) float64
+        + AddNumber(kind Kind, nn Number) 
+        + AddRaw(kind Kind, r uint64) 
+        + AddInt64(i int64) 
+        + AddFloat64(f float64) 
+        + AddNumberAtomic(kind Kind, nn Number) 
+        + AddRawAtomic(kind Kind, r uint64) 
+        + AddInt64Atomic(i int64) 
+        + AddFloat64Atomic(f float64) 
+        + CompareAndSwapNumber(on Number, nn Number) bool
+        + CompareAndSwapRaw(or uint64, nr uint64) bool
+        + CompareAndSwapInt64(oi int64, ni int64) bool
+        + CompareAndSwapFloat64(of float64, nf float64) bool
+        + CompareNumber(kind Kind, nn Number) int
+        + CompareRaw(kind Kind, r uint64) int
+        + CompareInt64(i int64) int
+        + CompareFloat64(f float64) int
+        + IsPositive(kind Kind) bool
+        + IsNegative(kind Kind) bool
+        + IsZero(kind Kind) bool
+        + Emit(kind Kind) string
+        + AsInterface(kind Kind) <font color=blue>interface</font>{}
+
+    }
+    class number.Kind << (T, #FF7700) >>  {
+    }
+    class number.Number << (T, #FF7700) >>  {
+    }
+}
+
+
+
+namespace sdkapi {
+    interface AsyncBatchRunner  {
+        + Run(ctx context.Context, capture <font color=blue>func</font>([]attribute.KeyValue, ...Observation) ) 
+
+    }
+    interface AsyncImpl  {
+    }
+    interface AsyncRunner  {
+        + AnyRunner() 
+
+    }
+    interface AsyncSingleRunner  {
+        + Run(ctx context.Context, single AsyncImpl, capture <font color=blue>func</font>([]attribute.KeyValue, ...Observation) ) 
+
+    }
+    class Descriptor << (S,Aquamarine) >> {
+        - name string
+        - instrumentKind InstrumentKind
+        - numberKind number.Kind
+        - description string
+        - unit unit.Unit
+
+        + Name() string
+        + InstrumentKind() InstrumentKind
+        + Description() string
+        + Unit() unit.Unit
+        + NumberKind() number.Kind
+
+    }
+    interface InstrumentImpl  {
+        + Implementation() <font color=blue>interface</font>{}
+        + Descriptor() Descriptor
+
+    }
+    class InstrumentKind << (S,Aquamarine) >> {
+        + Synchronous() bool
+        + Asynchronous() bool
+        + Adding() bool
+        + Grouping() bool
+        + Monotonic() bool
+        + PrecomputedSum() bool
+        + String() string
+
+    }
+    class Measurement << (S,Aquamarine) >> {
+        - number number.Number
+        - instrument SyncImpl
+
+        + SyncImpl() SyncImpl
+        + Number() number.Number
+
+    }
+    interface MeterImpl  {
+        + RecordBatch(ctx context.Context, labels []attribute.KeyValue, measurement ...Measurement) 
+        + NewSyncInstrument(descriptor Descriptor) (SyncImpl, error)
+        + NewAsyncInstrument(descriptor Descriptor, runner AsyncRunner) (AsyncImpl, error)
+
+    }
+    class Observation << (S,Aquamarine) >> {
+        - number number.Number
+        - instrument AsyncImpl
+
+        + AsyncImpl() AsyncImpl
+        + Number() number.Number
+
+    }
+    interface SyncImpl  {
+        + RecordOne(ctx context.Context, number number.Number, labels []attribute.KeyValue) 
+
+    }
+    class noopAsyncInstrument << (S,Aquamarine) >> {
+    }
+    class noopInstrument << (S,Aquamarine) >> {
+        + Implementation() <font color=blue>interface</font>{}
+        + Descriptor() Descriptor
+
+    }
+    class noopSyncInstrument << (S,Aquamarine) >> {
+        + RecordOne( context.Context,  number.Number,  []attribute.KeyValue) 
+
+    }
+    class sdkapi.InstrumentKind << (T, #FF7700) >>  {
+    }
+}
+"sdkapi.AsyncRunner" *-- "extends""sdkapi.AsyncBatchRunner"
+"sdkapi.InstrumentImpl" *-- "extends""sdkapi.AsyncImpl"
+"sdkapi.AsyncRunner" *-- "extends""sdkapi.AsyncSingleRunner"
+"sdkapi.InstrumentImpl" *-- "extends""sdkapi.SyncImpl"
+"sdkapi.noopInstrument" *-- "extends""sdkapi.noopAsyncInstrument"
+"sdkapi.noopInstrument" *-- "extends""sdkapi.noopSyncInstrument"
+
+"sdkapi.InstrumentImpl" <|-- "implements""sdkapi.noopInstrument"
+"sdkapi.SyncImpl" <|-- "implements""sdkapi.noopSyncInstrument"
+
+"sdkapi.Descriptor""uses" o-- "number.Kind"
+"sdkapi.Descriptor""uses" o-- "sdkapi.InstrumentKind"
+"sdkapi.Descriptor""uses" o-- "unit.Unit"
+"sdkapi.Measurement""uses" o-- "number.Number"
+"sdkapi.Measurement""uses" o-- "sdkapi.SyncImpl"
+"sdkapi.Observation""uses" o-- "number.Number"
+"sdkapi.Observation""uses" o-- "sdkapi.AsyncImpl"
+
+namespace unit {
+    class unit.Unit << (T, #FF7700) >>  {
+    }
+}
+
+
+
+"__builtin__.int8" #.. "alias of""number.Kind"
+"__builtin__.int8" #.. "alias of""sdkapi.InstrumentKind"
+"__builtin__.string" #.. "alias of""unit.Unit"
+"__builtin__.uint64" #.. "alias of""number.Number"
+"metric.<font color=blue>func</font>(*InstrumentConfig) " #.. "alias of""metric.instrumentOptionFunc"
+"metric.<font color=blue>func</font>(*MeterConfig) " #.. "alias of""metric.meterOptionFunc"
+"metric.fontcolorbluefuncfontcontextContextBatchObserverResult" #.. "alias of""metric.BatchObserverFunc"
+"metric.fontcolorbluefuncfontcontextContextFloat64ObserverResult" #.. "alias of""metric.Float64ObserverFunc"
+"metric.fontcolorbluefuncfontcontextContextInt64ObserverResult" #.. "alias of""metric.Int64ObserverFunc"
+"metric.sdkapiMeasurement" #.. "alias of""metric.Measurement"
+"metric.sdkapiObservation" #.. "alias of""metric.Observation"
+@enduml
